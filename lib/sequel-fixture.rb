@@ -126,6 +126,8 @@ class Sequel::Fixture
           raise MissingProcessedValueError, "In record '#{values.to_h}' to be inserted into '#{table_name}', the processed value of field '#{m.field}' is missing, aborting."
         rescue NoMethodError => e
           raise IllegalFixtureFormat, "In record '#{values}', data must be formatted as arrays of hashes. Check 'data' section in '#{table_name}.yaml'"
+        rescue Sequel::DatabaseError => sde
+          raise Sequel::Fixture::DatabaseError, "DB table: #{table_name}, #{sde.message}"
         end
       end
     end

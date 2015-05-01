@@ -1,5 +1,6 @@
 require "sequel-fixture"
 require "fast"
+require "sequel/exceptions"
 
 describe Sequel::Fixture do
   describe ".path" do
@@ -14,6 +15,20 @@ describe Sequel::Fixture do
   end
 
   describe ".new" do
+    context "return a DatabaseError" do
+      it "calls load_fixture" do
+        expect_any_instance_of(Sequel::Fixture).to receive(:simplify).and_raise(Sequel::DatabaseError.new(StandardError.new("created_at: cannot be null")))
+
+        table    = double
+        database = double :[] => @table
+        Sequel::Fixture.path = File.join(File.dirname(__FILE__), "fixtures")
+        expect {
+          Sequel::Fixture.new(:test, database, true)
+        }.to raise_error Sequel::Fixture::DatabaseError,
+          "DB table: actions, created_at: cannot be null"
+      end
+    end
+
     context "a symbol is sent representing a fixture" do
       it "calls load_fixture" do
         expect_any_instance_of(Sequel::Fixture).to receive(:load).with :test
